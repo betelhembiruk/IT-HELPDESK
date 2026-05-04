@@ -8,8 +8,8 @@ const Sidebar = () => {
   const { logout } = useContext(AuthContext);
 
   const handleLogout = () => {
-    logout();          // clear user + token
-    navigate("/");     // redirect to login
+    logout();        
+    navigate("/");    
   };
 
   const linkStyle = (path) => ({

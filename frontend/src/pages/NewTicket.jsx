@@ -51,7 +51,7 @@ const NewTicket = () => {
     problem: "",
     phone: "",
     broughtBy: "",
-    hardwareType: "PC"   // ✅ NEW FIELD
+    hardwareType: "PC"  
   });
 
   const [loading, setLoading] = useState(false);
@@ -120,7 +120,6 @@ const NewTicket = () => {
               style={styles.input}
             />
 
-            {/* ✅ HARDWARE TYPE */}
             <select
               name="hardwareType"
               value={form.hardwareType}
@@ -134,7 +133,6 @@ const NewTicket = () => {
               <option value="Other">Other</option>
             </select>
 
-            {/* BRANCH */}
             <select
               name="branch"
               value={form.branch}

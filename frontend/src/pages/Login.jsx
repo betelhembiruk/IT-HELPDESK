@@ -31,7 +31,6 @@ const Login = () => {
     <div style={styles.container}>
       <form onSubmit={handleLogin} style={styles.card}>
 
-        {/* 🔷 HEADER */}
         <div style={styles.header}>
           <img src="/logo.png" alt="logo" style={styles.logo} />
 
@@ -41,7 +40,6 @@ const Login = () => {
         </div>
 
 
-        {/* 🔹 INPUTS */}
         <input
           type="text"
           placeholder="Username"
@@ -58,7 +56,6 @@ const Login = () => {
           style={styles.input}
         />
 
-        {/* 🔹 BUTTON */}
         <button type="submit" style={styles.button}>
           Login
         </button>
@@ -70,9 +67,7 @@ const Login = () => {
 
 export default Login;
 
-/* =========================
-   🎨 STYLES
-========================= */
+
 const styles = {
   container: {
     height: "100vh",

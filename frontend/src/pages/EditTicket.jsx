@@ -11,7 +11,6 @@ const EditTicket = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // ================= LOAD =================
   const fetchTicket = async () => {
     try {
       setFetching(true);
@@ -36,7 +35,6 @@ const EditTicket = () => {
     fetchTicket();
   }, [id]);
 
-  // ================= CHANGE =================
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -44,7 +42,6 @@ const EditTicket = () => {
     }));
   };
 
-  // ================= SAVE =================
   const submit = async (e) => {
     e.preventDefault();
 
@@ -88,7 +85,6 @@ const EditTicket = () => {
 
         <form onSubmit={submit} style={styles.grid}>
 
-          {/* ================= BASIC INFO ================= */}
           <div style={styles.card}>
             <h3>Basic Information</h3>
 
@@ -100,7 +96,6 @@ const EditTicket = () => {
             <input name="phone" placeholder="Phone" value={form.phone || ""} onChange={handleChange} />
           </div>
 
-          {/* ================= RETURN ================= */}
           <div style={styles.card}>
             <h3>Return Details</h3>
 
@@ -125,7 +120,6 @@ const EditTicket = () => {
             />
           </div>
 
-          {/* ================= MAINTENANCE ================= */}
           <div style={styles.card}>
             <h3>Maintenance</h3>
 
@@ -173,7 +167,6 @@ const EditTicket = () => {
             )}
           </div>
 
-          {/* ================= ACTION ================= */}
           <div style={styles.full}>
             <button type="submit" disabled={loading} style={styles.button}>
               {loading ? "Saving..." : "Save Changes"}
@@ -188,7 +181,6 @@ const EditTicket = () => {
 
 export default EditTicket;
 
-/* ================= STYLES ================= */
 const styles = {
   page: {
     padding: "20px"

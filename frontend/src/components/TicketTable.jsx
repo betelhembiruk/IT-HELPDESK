@@ -13,10 +13,10 @@ const TicketTable = () => {
 
   const navigate = useNavigate();
 
-  // ================= HELPER =================
+
   const getHardware = (t) => t.hardwareType || "PC";
 
-  // ================= FETCH =================
+ 
   const fetchTickets = async () => {
     const res = await api.get("/tickets");
     setTickets(res.data);
@@ -26,7 +26,7 @@ const TicketTable = () => {
     fetchTickets();
   }, []);
 
-  // ================= STATUS =================
+  
   const updateStatus = async (id, status) => {
     await api.put(`/tickets/${id}`, {
       status,
@@ -36,7 +36,7 @@ const TicketTable = () => {
     fetchTickets();
   };
 
-  // ================= PRINT PDF SINGLE =================
+  
 const printTicket = (t) => {
   if (t.status !== "Closed") {
     alert("Only CLOSED tickets can be printed");
@@ -49,11 +49,11 @@ const printTicket = (t) => {
   logo.src = "/logo.png";
 
   logo.onload = () => {
-    // ================= HEADER =================
+   
     doc.setFillColor(149, 41, 142);
     doc.rect(0, 0, 210, 45, "F");
 
-    // BIG LOGO
+   
     doc.addImage(logo, "PNG", 10, 6, 35, 35);
 
     doc.setTextColor(255, 255, 255);
@@ -65,7 +65,7 @@ const printTicket = (t) => {
 
     doc.setTextColor(0, 0, 0);
 
-    // ================= MAIN DETAILS =================
+   
     autoTable(doc, {
       startY: 55,
       theme: "grid",
@@ -87,7 +87,7 @@ const printTicket = (t) => {
       ]
     });
 
-    // ================= MAINTENANCE =================
+   
     autoTable(doc, {
       startY: doc.lastAutoTable.finalY + 10,
       theme: "striped",
@@ -101,7 +101,7 @@ const printTicket = (t) => {
       ]
     });
 
-    // ================= SIGNATURE SECTION =================
+  
     const finalY = doc.lastAutoTable.finalY + 20;
 
     doc.setFontSize(11);
@@ -115,7 +115,7 @@ const printTicket = (t) => {
   };
 };
 
-  // ================= EXPORT EXCEL =================
+
   const exportExcel = () => {
     const data = tickets.map(t => ({
       Serial: t.serialNumber,
@@ -146,7 +146,7 @@ const printTicket = (t) => {
     saveAs(file, "tickets.xlsx");
   };
 
-  // ================= EXPORT PDF ALL =================
+ 
   const exportPDF = () => {
     const doc = new jsPDF();
 
@@ -168,7 +168,7 @@ const printTicket = (t) => {
     doc.save("tickets.pdf");
   };
 
-  // ================= FILTER =================
+
   const filtered = tickets.filter((t) =>
     t.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
     t.tagNumber?.toLowerCase().includes(search.toLowerCase()) ||
@@ -294,7 +294,7 @@ const printTicket = (t) => {
         </table>
       </div>
 
-      {/* MODAL */}
+  
       {selectedTicket && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTicket(null)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -321,7 +321,7 @@ const printTicket = (t) => {
 
 export default TicketTable;
 
-/* ================= STYLES (UNCHANGED) ================= */
+
 const styles = {
   page: { padding: "20px", background: "#f4f4f7", minHeight: "100vh" },
 

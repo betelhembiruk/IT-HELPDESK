@@ -14,13 +14,10 @@ import "react-toastify/dist/ReactToastify.css";
 const App = () => {
   return (
     <>
-      {/* ROUTES */}
       <Routes>
 
-        {/* LOGIN */}
         <Route path="/" element={<Login />} />
 
-        {/* DASHBOARD */}
         <Route
           path="/dashboard"
           element={
@@ -30,7 +27,6 @@ const App = () => {
           }
         />
 
-        {/* TICKETS */}
         <Route
           path="/tickets"
           element={
@@ -40,7 +36,6 @@ const App = () => {
           }
         />
 
-        {/* NEW TICKET */}
         <Route
           path="/new-ticket"
           element={
@@ -50,7 +45,6 @@ const App = () => {
           }
         />
 
-        {/* EDIT TICKET */}
         <Route
           path="/edit-ticket/:id"
           element={
@@ -62,7 +56,6 @@ const App = () => {
 
       </Routes>
 
-      {/* ✅ TOAST CONTAINER (GLOBAL) */}
       <ToastContainer
         position="top-right"
         autoClose={3000}

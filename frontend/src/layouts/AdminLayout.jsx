@@ -23,14 +23,14 @@ const AdminLayout = ({ children }) => {
   return (
     <div style={styles.container}>
 
-      {/* ================= SIDEBAR ================= */}
+      
       <div
         style={{
           ...styles.sidebar,
           width: open ? "220px" : "70px"
         }}
       >
-        {/* TOP */}
+    
         <div style={styles.top}>
           <div style={styles.sidebarHeader}>
            
@@ -43,7 +43,7 @@ const AdminLayout = ({ children }) => {
           />
         </div>
 
-        {/* LINKS */}
+     
         <Link
           to="/dashboard"
           style={{
@@ -74,16 +74,16 @@ const AdminLayout = ({ children }) => {
           <FaPlus /> {open && "New Ticket"}
         </Link>
 
-        {/* LOGOUT */}
+   
         <button onClick={logout} style={styles.logout}>
           <FaSignOutAlt /> {open && "Logout"}
         </button>
       </div>
 
-      {/* ================= MAIN ================= */}
+     
       <div style={styles.main}>
 
-        {/* TOPBAR */}
+        
         <div style={styles.topbar}>
           <div style={styles.topbarContent}>
             <img
@@ -95,7 +95,7 @@ const AdminLayout = ({ children }) => {
           </div>
         </div>
 
-        {/* CONTENT */}
+    
         <div style={styles.content}>
           {children}
         </div>
@@ -106,9 +106,7 @@ const AdminLayout = ({ children }) => {
 
 export default AdminLayout;
 
-/* =========================
-   🎨 STYLES
-========================= */
+
 const styles = {
   container: {
     display: "flex",
