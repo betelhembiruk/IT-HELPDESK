@@ -1,15 +1,21 @@
 import { Routes, Route } from "react-router-dom";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Tickets from "./pages/Tickets";
 import NewTicket from "./pages/NewTicket";
+import EditTicket from "./pages/EditTicket"; // ✅ ADD THIS
+
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
     <Routes>
+
+      {/* LOGIN */}
       <Route path="/" element={<Login />} />
 
+      {/* DASHBOARD */}
       <Route
         path="/dashboard"
         element={
@@ -19,6 +25,7 @@ const App = () => {
         }
       />
 
+      {/* TICKETS LIST */}
       <Route
         path="/tickets"
         element={
@@ -28,6 +35,7 @@ const App = () => {
         }
       />
 
+      {/* NEW TICKET */}
       <Route
         path="/new-ticket"
         element={
@@ -36,6 +44,17 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* ✏️ EDIT TICKET (NEW ROUTE) */}
+      <Route
+        path="/edit-ticket/:id"
+        element={
+          <ProtectedRoute>
+            <EditTicket />
+          </ProtectedRoute>
+        }
+      />
+
     </Routes>
   );
 };

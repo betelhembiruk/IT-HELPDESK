@@ -3,68 +3,93 @@ import api from "../api/axios";
 import AdminLayout from "../layouts/AdminLayout";
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
-    pending: 0,
-    active: 0,
-    closed: 0
-  });
+  const [stats, setStats] = useState({ pending: 0, active: 0, closed: 0 });
+  const [tickets, setTickets] = useState([]);
 
   useEffect(() => {
     api.get("/tickets/stats/summary")
       .then(res => setStats(res.data));
+
+    api.get("/tickets")
+      .then(res => setTickets(res.data));
   }, []);
+
+  // ⏱️ NOT MAINTAINED IN 7 DAYS
+  const overdue = tickets.filter(t => {
+    const created = new Date(t.createdAt);
+    const now = new Date();
+    const diff = (now - created) / (1000 * 60 * 60 * 24);
+    return diff > 7 && t.status !== "Closed";
+  });
 
   return (
     <AdminLayout>
-      <h1 style={{ marginBottom: "20px" }}>Dashboard Overview</h1>
 
-      {/* STATS GRID */}
-      <div style={gridStyle}>
-        <div style={{ ...card, background: "#ff9800" }}>
+      <h2>Dashboard Overview</h2>
+
+      {/* STATS */}
+      <div style={styles.grid}>
+
+        <div style={{ ...styles.card, background: "#f59e0b" }}>
           <h2>{stats.pending}</h2>
-          <p>Pending Tickets</p>
+          <p>Pending</p>
         </div>
 
-        <div style={{ ...card, background: "#2196f3" }}>
+        <div style={{ ...styles.card, background: "#3b82f6" }}>
           <h2>{stats.active}</h2>
-          <p>Active Tickets</p>
+          <p>Active</p>
         </div>
 
-        <div style={{ ...card, background: "#4caf50" }}>
+        <div style={{ ...styles.card, background: "#10b981" }}>
           <h2>{stats.closed}</h2>
-          <p>Closed Tickets</p>
+          <p>Closed</p>
         </div>
+
       </div>
 
-      {/* QUICK INFO SECTION */}
-      <div style={tableBox}>
-        <h3>System Status</h3>
-        <p>✔ Backend Connected</p>
-        <p>✔ MongoDB Connected</p>
-        <p>✔ Ticket System Active</p>
+      {/* ALERT BOX */}
+      <div style={styles.alert}>
+        <h3>⚠ Overdue Maintenance (7+ days)</h3>
+
+        {overdue.length === 0 ? (
+          <p>All systems up to date</p>
+        ) : (
+          overdue.map(t => (
+            <div key={t._id} style={styles.item}>
+              {t.pcModel} - {t.branch}
+            </div>
+          ))
+        )}
       </div>
+
     </AdminLayout>
   );
 };
 
-const gridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
-  gap: "20px"
-};
+const styles = {
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "15px"
+  },
 
-const card = {
-  color: "white",
-  padding: "20px",
-  borderRadius: "10px",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-};
+  card: {
+    padding: "20px",
+    color: "white",
+    borderRadius: "10px"
+  },
 
-const tableBox = {
-  marginTop: "30px",
-  padding: "20px",
-  background: "white",
-  borderRadius: "10px"
+  alert: {
+    marginTop: "20px",
+    background: "white",
+    padding: "20px",
+    borderRadius: "10px"
+  },
+
+  item: {
+    padding: "8px",
+    borderBottom: "1px solid #ddd"
+  }
 };
 
 export default Dashboard;

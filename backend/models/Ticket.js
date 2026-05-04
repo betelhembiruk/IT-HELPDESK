@@ -1,42 +1,99 @@
 import mongoose from "mongoose";
 
-const ticketSchema = new mongoose.Schema({
-  serialNumber: { type: String, required: true },
-  tagNumber: { type: String, required: true },
-  branchName: { type: String, required: true },
+const ticketSchema = new mongoose.Schema(
+  {
+    // =========================
+    // DEVICE INFO
+    // =========================
+    serialNumber: {
+      type: String,
+      required: true
+    },
 
-  problem: { type: String, required: true },
-  description: String,
+    tagNumber: String,
+    pcModel: String,
 
-  phone: String,
+    branch: {
+      type: String,
+      required: true
+    },
 
-  broughtBy: {
-    type: String,
-    enum: ["IT Department", "File Operator"],
-    required: true
+    problem: {
+      type: String,
+      required: true
+    },
+
+    phone: String,
+    broughtBy: String,
+
+    // =========================
+    // STATUS SYSTEM
+    // =========================
+    status: {
+      type: String,
+      enum: ["Pending", "Active", "Closed"],
+      default: "Pending"
+    },
+
+    // =========================
+    // PRIORITY SYSTEM (SLA)
+    // =========================
+    priority: {
+      type: String,
+      enum: ["Low", "Medium", "High", "Critical"],
+      default: "Medium"
+    },
+
+    slaDays: {
+      type: Number,
+      default: 3
+    },
+
+    // =========================
+    // RETURN SYSTEM
+    // =========================
+    returnedBy: {
+      type: String,
+      default: ""
+    },
+
+    returnedPerson: {
+      type: String,
+      default: ""
+    },
+
+    returnedAt: {
+      type: Date,
+      default: null
+    },
+
+    // =========================
+    // MAINTENANCE SYSTEM
+    // =========================
+    maintenanceDone: {
+      type: Boolean,
+      default: false
+    },
+
+    maintenanceType: {
+      type: String,
+      default: ""
+    },
+
+    maintenanceNotes: {
+      type: String,
+      default: ""
+    },
+
+    maintenanceReasonNotDone: {
+      type: String,
+      default: ""
+    }
   },
 
-  status: {
-    type: String,
-    enum: ["Pending", "Active", "Closed"],
-    default: "Pending"
-  },
-
-  hardwareRequested: {
-    type: Boolean,
-    default: false
-  },
-
-  hardwareDetails: String,
-
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-
-  updatedAt: Date,
-
-  closedAt: Date
-});
+  // auto adds:
+  // createdAt + updatedAt
+  { timestamps: true }
+);
 
 export default mongoose.model("Ticket", ticketSchema);

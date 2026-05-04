@@ -1,16 +1,16 @@
 import express from "express";
 import {
-  getTickets,
   createTicket,
-  updateTicket
+  getTickets,
+  updateTicket,
+  getTicketStats
 } from "../controllers/ticketController.js";
 
 const router = express.Router();
 
-router.get("/", getTickets);
 router.post("/", createTicket);
-
-// ✅ THIS IS REQUIRED
+router.get("/", getTickets);
 router.put("/:id", updateTicket);
+router.get("/stats/summary", getTicketStats);
 
 export default router;

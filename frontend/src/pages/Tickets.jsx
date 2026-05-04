@@ -1,11 +1,11 @@
-import MainLayout from "../layouts/MainLayout";
+import AdminLayout from "../layouts/AdminLayout";
 import TicketTable from "../components/TicketTable";
 
 const Tickets = () => {
   return (
-    <MainLayout>
+    <AdminLayout>
       <TicketTable />
-    </MainLayout>
+    </AdminLayout>
   );
 };
 
