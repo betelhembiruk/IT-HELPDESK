@@ -16,7 +16,8 @@ export const createTicket = async (req, res) => {
       phone,
       broughtBy,
       priority,
-      slaDays
+      slaDays,
+      hardwareType
     } = req.body;
 
     // validation
@@ -34,6 +35,7 @@ export const createTicket = async (req, res) => {
       problem,
       phone,
       broughtBy,
+      hardwareType,
 
       // defaults handled by schema (better than forcing here)
       status: "Pending",

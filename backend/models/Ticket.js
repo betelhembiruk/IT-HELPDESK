@@ -88,7 +88,11 @@ const ticketSchema = new mongoose.Schema(
     maintenanceReasonNotDone: {
       type: String,
       default: ""
-    }
+    },hardwareType: {
+  type: String,
+  enum: ["PC", "Laptop", "Printer", "Scanner", "Other"],
+  default: "PC"
+}
   },
 
   // auto adds:

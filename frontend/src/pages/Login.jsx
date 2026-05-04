@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -21,34 +23,113 @@ const Login = () => {
         navigate("/dashboard");
       }
     } catch (err) {
-      alert("Login failed");
+      toast.error("Login failed");
     }
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginTop: 100 }}>
-      <form onSubmit={handleLogin} style={{ padding: 20, border: "1px solid #ccc" }}>
-        <h2>Login</h2>
+    <div style={styles.container}>
+      <form onSubmit={handleLogin} style={styles.card}>
 
+        {/* 🔷 HEADER */}
+        <div style={styles.header}>
+          <img src="/logo.png" alt="logo" style={styles.logo} />
+
+          <h2 style={styles.systemTitle}>
+            Arada District IT <br></br>Maintenance Status System
+          </h2>
+        </div>
+
+
+        {/* 🔹 INPUTS */}
         <input
+          type="text"
           placeholder="Username"
+          value={username}
           onChange={(e) => setUsername(e.target.value)}
+          style={styles.input}
         />
-
-        <br /><br />
 
         <input
           type="password"
           placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
+          style={styles.input}
         />
 
-        <br /><br />
+        {/* 🔹 BUTTON */}
+        <button type="submit" style={styles.button}>
+          Login
+        </button>
 
-        <button type="submit">Login</button>
       </form>
     </div>
   );
 };
 
 export default Login;
+
+/* =========================
+   🎨 STYLES
+========================= */
+const styles = {
+  container: {
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+
+    background: "linear-gradient(135deg, #95298e, #5f0a87)"
+  },
+
+  card: {
+    width: "500px",
+    padding: "30px",
+    borderRadius: "15px",
+    background: "white",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+    textAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px"
+  },
+
+  header: {
+    marginBottom: "10px"
+  },
+
+  logo: {
+    width: "400px",
+    height: "200px",
+    marginBottom: "10px"
+  },
+
+  systemTitle: {
+    fontSize: "35px",
+    fontWeight: "bold",
+    color: "#333",
+  },
+
+  subtitle: {
+    fontSize: "14px",
+    color: "gray"
+  },
+
+  input: {
+    padding: "20px",
+    borderRadius: "8px",
+    border: "1px solid #ddd",
+    outline: "none"
+  },
+
+  button: {
+    padding: "20px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#95298e",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "bold"
+  }
+};

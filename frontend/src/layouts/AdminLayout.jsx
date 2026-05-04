@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaBars,
   FaHome,
@@ -11,70 +11,112 @@ import {
 const AdminLayout = ({ children }) => {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const logout = () => {
     localStorage.removeItem("auth");
     navigate("/");
   };
 
+  const isActive = (path) => location.pathname === path;
+
   return (
     <div style={styles.container}>
 
-      {/* SIDEBAR */}
-      <div style={{
-        ...styles.sidebar,
-        width: open ? "220px" : "70px"
-      }}>
-
+      {/* ================= SIDEBAR ================= */}
+      <div
+        style={{
+          ...styles.sidebar,
+          width: open ? "220px" : "70px"
+        }}
+      >
         {/* TOP */}
         <div style={styles.top}>
-          <h3 style={{ color: "white", display: open ? "block" : "none" }}>
-            IT Admin
-          </h3>
+          <div style={styles.sidebarHeader}>
+           
+            {open && <span style={styles.logoText}>Arada District IT</span>}
+          </div>
 
           <FaBars
             onClick={() => setOpen(!open)}
-            style={{ color: "white", cursor: "pointer" }}
+            style={styles.menuIcon}
           />
         </div>
 
-        <Link style={styles.link} to="/dashboard">
+        {/* LINKS */}
+        <Link
+          to="/dashboard"
+          style={{
+            ...styles.link,
+            ...(isActive("/dashboard") && styles.activeLink)
+          }}
+        >
           <FaHome /> {open && "Dashboard"}
         </Link>
 
-        <Link style={styles.link} to="/tickets">
+        <Link
+          to="/tickets"
+          style={{
+            ...styles.link,
+            ...(isActive("/tickets") && styles.activeLink)
+          }}
+        >
           <FaTicketAlt /> {open && "Tickets"}
         </Link>
 
-        <Link style={styles.link} to="/new-ticket">
+        <Link
+          to="/new-ticket"
+          style={{
+            ...styles.link,
+            ...(isActive("/new-ticket") && styles.activeLink)
+          }}
+        >
           <FaPlus /> {open && "New Ticket"}
         </Link>
 
+        {/* LOGOUT */}
         <button onClick={logout} style={styles.logout}>
           <FaSignOutAlt /> {open && "Logout"}
         </button>
       </div>
 
-      {/* MAIN */}
+      {/* ================= MAIN ================= */}
       <div style={styles.main}>
+
+        {/* TOPBAR */}
         <div style={styles.topbar}>
-          PC Maintenance System
+          <div style={styles.topbarContent}>
+            <img
+              src="/logo.png"
+              alt="logo"
+              style={styles.topLogo}
+            />
+           
+          </div>
         </div>
 
+        {/* CONTENT */}
         <div style={styles.content}>
           {children}
         </div>
       </div>
-
     </div>
   );
 };
 
+export default AdminLayout;
+
+/* =========================
+   🎨 STYLES
+========================= */
 const styles = {
-  container: { display: "flex", height: "100vh" },
+  container: {
+    display: "flex",
+    height: "100vh"
+  },
 
   sidebar: {
-    background: "#111827",
+    background: "linear-gradient(180deg, #95298e, #5f0a87)",
     color: "white",
     padding: "15px",
     transition: "0.3s",
@@ -89,6 +131,31 @@ const styles = {
     alignItems: "center"
   },
 
+  sidebarHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px"
+  },
+
+  sidebarLogo: {
+    width: "40px",
+    height: "40px",
+    objectFit: "contain",
+    borderRadius: "8px"
+  },
+
+  logoText: {
+    fontWeight: "bold",
+    fontSize: "26px",
+    whiteSpace: "nowrap"
+  },
+
+  menuIcon: {
+    color: "white",
+    cursor: "pointer",
+    fontSize: "18px"
+  },
+
   link: {
     color: "white",
     textDecoration: "none",
@@ -96,39 +163,62 @@ const styles = {
     gap: "10px",
     alignItems: "center",
     padding: "10px",
-    borderRadius: "6px",
-    background: "#1f2937"
+    borderRadius: "8px",
+    background: "rgba(255,255,255,0.1)",
+    transition: "0.2s"
+  },
+
+  activeLink: {
+    background: "rgba(255,255,255,0.25)",
+    fontWeight: "bold"
   },
 
   logout: {
     marginTop: "auto",
-    background: "red",
+    background: "#ff4d4f",
     color: "white",
     border: "none",
     padding: "10px",
+    borderRadius: "8px",
     cursor: "pointer",
     display: "flex",
     gap: "10px",
     alignItems: "center"
   },
 
-  main: { flex: 1, display: "flex", flexDirection: "column" },
+  main: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column"
+  },
 
   topbar: {
-    height: "60px",
-    background: "white",
+    height: "100px",
+    background: "#95298e",
+    color: "white",
     display: "flex",
     alignItems: "center",
-    paddingLeft: "20px",
-    fontWeight: "bold",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+    padding: "0 20px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
   },
+
+  topbarContent: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px"
+  },
+
+  topLogo: {
+    height: "220px",
+    width: "350px",
+  },
+
+ 
 
   content: {
     padding: "20px",
-    background: "#f3f4f6",
-    flex: 1
+    background: "#f5f5f7",
+    flex: 1,
+    overflow: "auto"
   }
 };
-
-export default AdminLayout;

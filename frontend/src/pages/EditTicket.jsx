@@ -7,55 +7,25 @@ const EditTicket = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    serialNumber: "",
-    tagNumber: "",
-    pcModel: "",
-    branch: "",
-    problem: "",
-    phone: "",
-    broughtBy: "",
-    status: "",
-    returnedBy: "",
-    returnedPerson: "",
-
-    // 🆕 MAINTENANCE
-    maintenanceDone: false,
-    maintenanceType: "",
-    maintenanceNotes: "",
-    maintenanceReasonNotDone: ""
-  });
-
+  const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // =========================
-  // LOAD SINGLE TICKET
-  // =========================
+  // ================= LOAD =================
   const fetchTicket = async () => {
     try {
       setFetching(true);
 
-      const res = await axios.get(
-        `http://localhost:5000/api/tickets`
-      );
-
+      const res = await axios.get("http://localhost:5000/api/tickets");
       const ticket = res.data.find((t) => t._id === id);
 
       if (ticket) {
         setForm({
           ...ticket,
-          returnedBy: ticket.returnedBy || "",
-          returnedPerson: ticket.returnedPerson || "",
-          maintenanceDone: ticket.maintenanceDone || false,
-          maintenanceType: ticket.maintenanceType || "",
-          maintenanceNotes: ticket.maintenanceNotes || "",
-          maintenanceReasonNotDone:
-            ticket.maintenanceReasonNotDone || ""
+          maintenanceDone: ticket.maintenanceDone || false
         });
       }
     } catch (err) {
-      console.log("Load error:", err.message);
       alert("Failed to load ticket");
     } finally {
       setFetching(false);
@@ -66,199 +36,149 @@ const EditTicket = () => {
     fetchTicket();
   }, [id]);
 
-  // =========================
-  // HANDLE CHANGE
-  // =========================
+  // ================= CHANGE =================
   const handleChange = (e) => {
-    setForm({
-      ...form,
+    setForm((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value
-    });
+    }));
   };
 
-  // =========================
-  // UPDATE
-  // =========================
+  // ================= SAVE =================
   const submit = async (e) => {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      const payload = {
-        ...form,
-
-        // auto returned date logic
-        returnedAt:
-          form.status === "Closed"
-            ? new Date()
-            : form.returnedAt || null
-      };
-
       await axios.put(
         `http://localhost:5000/api/tickets/${id}`,
-        payload
+        {
+          ...form,
+          returnedAt:
+            form.status === "Closed" ? new Date() : form.returnedAt || null
+        }
       );
 
-      alert("Ticket updated successfully!");
       navigate("/tickets");
     } catch (err) {
-      console.log("Update error:", err.message);
-      alert("Failed to update ticket");
+      alert("Update failed");
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) {
+  if (fetching || !form) {
     return (
       <AdminLayout>
-        <p>Loading ticket...</p>
+        <p>Loading...</p>
       </AdminLayout>
     );
   }
 
   return (
     <AdminLayout>
-      <div style={{ maxWidth: "600px" }}>
-        <h2>Edit Ticket</h2>
+      <div style={styles.page}>
 
-        <form onSubmit={submit}>
+        {/* HEADER */}
+        <div style={styles.header}>
+          <h2>Edit Ticket</h2>
+          <p>Update ticket information and maintenance status</p>
+        </div>
+
+        <form onSubmit={submit} style={styles.grid}>
 
           {/* ================= BASIC INFO ================= */}
-          <input
-            name="serialNumber"
-            placeholder="Serial Number"
-            value={form.serialNumber || ""}
-            onChange={handleChange}
-          />
+          <div style={styles.card}>
+            <h3>Basic Information</h3>
 
-          <input
-            name="tagNumber"
-            placeholder="Tag Number"
-            value={form.tagNumber || ""}
-            onChange={handleChange}
-          />
-
-          <input
-            name="pcModel"
-            placeholder="PC Model / Type"
-            value={form.pcModel || ""}
-            onChange={handleChange}
-          />
-
-          <input
-            name="branch"
-            placeholder="Branch"
-            value={form.branch || ""}
-            onChange={handleChange}
-          />
-
-          <input
-            name="problem"
-            placeholder="Problem"
-            value={form.problem || ""}
-            onChange={handleChange}
-          />
-
-          <input
-            name="phone"
-            placeholder="Phone"
-            value={form.phone || ""}
-            onChange={handleChange}
-          />
-
-          <select
-            name="broughtBy"
-            value={form.broughtBy || ""}
-            onChange={handleChange}
-          >
-            <option value="">Brought By</option>
-            <option value="IT Department">IT Department</option>
-            <option value="File Operator">File Operator</option>
-          </select>
-
-          {/* ================= STATUS ================= */}
-          <select
-            name="status"
-            value={form.status || ""}
-            onChange={handleChange}
-          >
-            <option value="Pending">Pending</option>
-            <option value="Active">Active</option>
-            <option value="Closed">Closed</option>
-          </select>
-
-          <hr />
+            <input name="serialNumber" placeholder="Serial Number" value={form.serialNumber || ""} onChange={handleChange} />
+            <input name="tagNumber" placeholder="Tag Number" value={form.tagNumber || ""} onChange={handleChange} />
+            <input name="pcModel" placeholder="PC Model" value={form.pcModel || ""} onChange={handleChange} />
+            <input name="branch" placeholder="Branch" value={form.branch || ""} onChange={handleChange} />
+            <input name="problem" placeholder="Problem" value={form.problem || ""} onChange={handleChange} />
+            <input name="phone" placeholder="Phone" value={form.phone || ""} onChange={handleChange} />
+          </div>
 
           {/* ================= RETURN ================= */}
-          <h3>Return Details</h3>
+          <div style={styles.card}>
+            <h3>Return Details</h3>
 
-          <select
-            name="returnedBy"
-            value={form.returnedBy || ""}
-            onChange={handleChange}
-          >
-            <option value="">Returned By</option>
-            <option value="IT Department">IT Department</option>
-            <option value="File Operator">File Operator</option>
-          </select>
+            <select name="status" value={form.status || ""} onChange={handleChange}>
+              <option value="Pending">Pending</option>
+              <option value="Active">Active</option>
+              <option value="Closed">Closed</option>
+            </select>
 
-          <input
-            name="returnedPerson"
-            placeholder="Returned Person Name"
-            value={form.returnedPerson || ""}
-            onChange={handleChange}
-          />
-
-          <hr />
-
-          {/* ================= MAINTENANCE ================= */}
-          <h3>Maintenance</h3>
-
-          <select
-            name="maintenanceDone"
-            value={form.maintenanceDone}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                maintenanceDone: e.target.value === "true"
-              })
-            }
-          >
-            <option value="true">Maintenance Done</option>
-            <option value="false">Not Maintained</option>
-          </select>
-
-          {form.maintenanceDone ? (
-            <>
-              <input
-                name="maintenanceType"
-                placeholder="What was fixed?"
-                value={form.maintenanceType}
-                onChange={handleChange}
-              />
-
-              <textarea
-                name="maintenanceNotes"
-                placeholder="Maintenance Notes"
-                value={form.maintenanceNotes}
-                onChange={handleChange}
-              />
-            </>
-          ) : (
-            <textarea
-              name="maintenanceReasonNotDone"
-              placeholder="Why not maintained?"
-              value={form.maintenanceReasonNotDone}
+            <input
+              name="returnedBy"
+              placeholder="Returned By"
+              value={form.returnedBy || ""}
               onChange={handleChange}
             />
-          )}
 
-          {/* ================= SUBMIT ================= */}
-          <button type="submit" disabled={loading}>
-            {loading ? "Updating..." : "Update Ticket"}
-          </button>
+            <input
+              name="returnedPerson"
+              placeholder="Name"
+              value={form.returnedPerson || ""}
+              onChange={handleChange}
+            />
+          </div>
+
+          {/* ================= MAINTENANCE ================= */}
+          <div style={styles.card}>
+            <h3>Maintenance</h3>
+
+            <label style={styles.switch}>
+              <input
+                type="checkbox"
+                checked={form.maintenanceDone}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    maintenanceDone: e.target.checked
+                  })
+                }
+              />
+              <span>
+                {form.maintenanceDone
+                  ? "Maintenance Done"
+                  : "Not Maintained"}
+              </span>
+            </label>
+
+            {form.maintenanceDone ? (
+              <>
+                <input
+                  name="maintenanceType"
+                  placeholder="What was fixed?"
+                  value={form.maintenanceType || ""}
+                  onChange={handleChange}
+                />
+
+                <textarea
+                  name="maintenanceNotes"
+                  placeholder="Maintenance Notes"
+                  value={form.maintenanceNotes || ""}
+                  onChange={handleChange}
+                />
+              </>
+            ) : (
+              <textarea
+                name="maintenanceReasonNotDone"
+                placeholder="Why was it not maintained?"
+                value={form.maintenanceReasonNotDone || ""}
+                onChange={handleChange}
+              />
+            )}
+          </div>
+
+          {/* ================= ACTION ================= */}
+          <div style={styles.full}>
+            <button type="submit" disabled={loading} style={styles.button}>
+              {loading ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
 
         </form>
       </div>
@@ -267,3 +187,53 @@ const EditTicket = () => {
 };
 
 export default EditTicket;
+
+/* ================= STYLES ================= */
+const styles = {
+  page: {
+    padding: "20px"
+  },
+
+  header: {
+    marginBottom: "20px"
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: "15px"
+  },
+
+  card: {
+    background: "white",
+    padding: "15px",
+    borderRadius: "10px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+
+  full: {
+    gridColumn: "1 / -1"
+  },
+
+  button: {
+    background: "#95298e",
+    color: "white",
+    padding: "12px",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    width: "100%"
+  },
+
+  switch: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    background: "#f3f3f3",
+    padding: "10px",
+    borderRadius: "8px"
+  }
+};

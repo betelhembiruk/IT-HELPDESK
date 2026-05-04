@@ -3,16 +3,20 @@ import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import QRCode from "qrcode";
 const TicketTable = () => {
   const [tickets, setTickets] = useState([]);
   const [search, setSearch] = useState("");
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   const navigate = useNavigate();
 
-  // =========================
-  // FETCH TICKETS
-  // =========================
+  // ================= HELPER =================
+  const getHardware = (t) => t.hardwareType || "PC";
+
+  // ================= FETCH =================
   const fetchTickets = async () => {
     const res = await api.get("/tickets");
     setTickets(res.data);
@@ -22,9 +26,7 @@ const TicketTable = () => {
     fetchTickets();
   }, []);
 
-  // =========================
-  // STATUS UPDATE
-  // =========================
+  // ================= STATUS =================
   const updateStatus = async (id, status) => {
     await api.put(`/tickets/${id}`, {
       status,
@@ -34,372 +36,348 @@ const TicketTable = () => {
     fetchTickets();
   };
 
-  // =========================
-  // 🖨️ PROFESSIONAL PRINT (UPGRADED)
-  // =========================
- import { useEffect, useState } from "react";
-import api from "../api/axios";
-import { useNavigate } from "react-router-dom";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+  // ================= PRINT PDF SINGLE =================
+const printTicket = (t) => {
+  if (t.status !== "Closed") {
+    alert("Only CLOSED tickets can be printed");
+    return;
+  }
 
-const TicketTable = () => {
-  const [tickets, setTickets] = useState([]);
-  const [search, setSearch] = useState("");
+  const doc = new jsPDF();
 
-  const navigate = useNavigate();
+  const logo = new Image();
+  logo.src = "/logo.png";
 
-  // =========================
-  // FETCH TICKETS
-  // =========================
-  const fetchTickets = async () => {
-    const res = await api.get("/tickets");
-    setTickets(res.data);
-  };
-
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  // =========================
-  // STATUS UPDATE
-  // =========================
-  const updateStatus = async (id, status) => {
-    await api.put(`/tickets/${id}`, {
-      status,
-      returnedAt: status === "Closed" ? new Date() : null
-    });
-
-    fetchTickets();
-  };
-
-  // =========================
-  // 🖨️ PROFESSIONAL PRINT (UPGRADED)
-  // =========================
-  const printTicket = (t) => {
-    if (t.status !== "Closed") {
-      alert("Only CLOSED tickets can be printed");
-      return;
-    }
-
-    const doc = new jsPDF();
-
+  logo.onload = () => {
     // ================= HEADER =================
+    doc.setFillColor(149, 41, 142);
+    doc.rect(0, 0, 210, 45, "F");
+
+    // BIG LOGO
+    doc.addImage(logo, "PNG", 10, 6, 35, 35);
+
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(18);
-    doc.text("PC MAINTENANCE HANDOVER REPORT", 14, 15);
+    doc.text("IT MAINTENANCE REPORT", 55, 22);
 
     doc.setFontSize(10);
-    doc.text(`Ticket ID: ${t._id}`, 14, 25);
-    doc.text(
-      `Generated: ${new Date().toLocaleString()}`,
-      120,
-      25
-    );
+    doc.text(`Date: ${new Date().toLocaleString()}`, 55, 30);
 
-    doc.line(14, 28, 200, 28);
+    doc.setTextColor(0, 0, 0);
 
-    // ================= MAIN TABLE =================
+    // ================= MAIN DETAILS =================
     autoTable(doc, {
-      startY: 35,
+      startY: 55,
       theme: "grid",
       head: [["Field", "Details"]],
+      headStyles: { fillColor: [149, 41, 142] },
       body: [
-        ["Serial Number", t.serialNumber || "-"],
-        ["Tag Number", t.tagNumber || "-"],
-        ["PC Model", t.pcModel || "-"],
-        ["Branch", t.branch || "-"],
-        ["Problem", t.problem || "-"],
+        ["Serial Number", t.serialNumber],
+        ["Tag Number", t.tagNumber],
+        ["Model", t.pcModel],
+        ["Hardware Type", t.hardwareType || "PC"],
+        ["Branch", t.branch],
+        ["Problem", t.problem],
+        ["Status", t.status],
         ["Phone", t.phone || "-"],
         ["Brought By", t.broughtBy || "-"],
-        ["Priority", t.priority || "-"],
-        ["Status", t.status || "-"],
-
-        // RETURN INFO
         ["Returned By", t.returnedBy || "-"],
         ["Returned Person", t.returnedPerson || "-"],
-        [
-          "Returned At",
-          t.returnedAt
-            ? new Date(t.returnedAt).toLocaleString()
-            : "-"
-        ],
+        ["Created At", t.createdAt ? new Date(t.createdAt).toLocaleString() : "-"]
+      ]
+    });
 
-        // MAINTENANCE INFO
-        ["Maintenance Done", t.maintenanceDone ? "Yes" : "No"],
-        ["Maintenance Type", t.maintenanceType || "-"],
-        ["Maintenance Notes", t.maintenanceNotes || "-"],
-        ["Not Maintained Reason", t.maintenanceReasonNotDone || "-"],
-
-        // TIMELINE
-        [
-          "Created At",
-          t.createdAt
-            ? new Date(t.createdAt).toLocaleString()
-            : "-"
-        ]
+    // ================= MAINTENANCE =================
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 10,
+      theme: "striped",
+      head: [["Maintenance Details"]],
+      headStyles: { fillColor: [59, 130, 246] },
+      body: [
+        [`Type: ${t.maintenanceType || "-"}`],
+        [`Done: ${t.maintenanceDone ? "Yes" : "No"}`],
+        [`Notes: ${t.maintenanceNotes || "-"}`],
+        [`Reason Not Done: ${t.maintenanceReasonNotDone || "-"}`]
       ]
     });
 
     // ================= SIGNATURE SECTION =================
     const finalY = doc.lastAutoTable.finalY + 20;
 
-    doc.text(
-      "IT Department Signature: ____________________",
-      14,
-      finalY
-    );
+    doc.setFontSize(11);
+    doc.text("Received By: ______________________", 14, finalY);
+    doc.text("Signature: ______________________", 14, finalY + 15);
+    doc.text("Stamp: ______________________", 14, finalY + 30);
 
-    doc.text(
-      "Client Signature: ____________________________",
-      14,
-      finalY + 10
-    );
+  
 
     doc.save(`ticket-${t.serialNumber || t._id}.pdf`);
   };
+};
 
-  // =========================
-  // SEARCH FILTER
-  // =========================
+  // ================= EXPORT EXCEL =================
+  const exportExcel = () => {
+    const data = tickets.map(t => ({
+      Serial: t.serialNumber,
+      Tag: t.tagNumber,
+      Model: t.pcModel,
+      Hardware: getHardware(t),
+      Branch: t.branch,
+      Problem: t.problem,
+      Status: t.status,
+      ReturnedBy: t.returnedBy,
+      Name: t.returnedPerson
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "Tickets");
+
+    const buffer = XLSX.write(wb, {
+      bookType: "xlsx",
+      type: "array"
+    });
+
+    const file = new Blob([buffer], {
+      type: "application/octet-stream"
+    });
+
+    saveAs(file, "tickets.xlsx");
+  };
+
+  // ================= EXPORT PDF ALL =================
+  const exportPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text("Tickets Report", 14, 10);
+
+    autoTable(doc, {
+      startY: 20,
+      head: [["Serial", "Tag", "Model", "Hardware", "Branch", "Status"]],
+      body: tickets.map(t => [
+        t.serialNumber,
+        t.tagNumber,
+        t.pcModel,
+        getHardware(t),
+        t.branch,
+        t.status
+      ])
+    });
+
+    doc.save("tickets.pdf");
+  };
+
+  // ================= FILTER =================
   const filtered = tickets.filter((t) =>
     t.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
     t.tagNumber?.toLowerCase().includes(search.toLowerCase()) ||
     t.branch?.toLowerCase().includes(search.toLowerCase()) ||
     t.problem?.toLowerCase().includes(search.toLowerCase()) ||
-    t.pcModel?.toLowerCase().includes(search.toLowerCase())
+    t.pcModel?.toLowerCase().includes(search.toLowerCase()) ||
+    getHardware(t).toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>All Tickets</h2>
+    <div style={styles.page}>
 
-      <input
-        placeholder="Search tickets..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          padding: "8px",
-          width: "300px",
-          marginBottom: "15px"
-        }}
-      />
+      {/* HEADER */}
+      <div style={styles.header}>
+        <h2 style={{ color: "#95298e" }}>All Tickets</h2>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ background: "#f3f3f3" }}>
-            <th>Serial</th>
-            <th>Tag</th>
-            <th>PC Model</th>
-            <th>Branch</th>
-            <th>Problem</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Returned</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <input
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={styles.search}
+          />
 
-        <tbody>
-          {filtered.map((t) => (
-            <tr key={t._id} style={{ borderBottom: "1px solid #ddd" }}>
-              <td>{t.serialNumber}</td>
-              <td>{t.tagNumber}</td>
-              <td>{t.pcModel || "-"}</td>
-              <td>{t.branch}</td>
-              <td>{t.problem}</td>
+          <button onClick={exportExcel} style={styles.exportBtn}>
+            Excel
+          </button>
 
-              <td>
-                <span
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "5px",
-                    color: "white",
+          <button onClick={exportPDF} style={styles.exportBtn}>
+            PDF
+          </button>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div style={styles.card}>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th>S/N</th>
+              <th>Tag NO</th>
+              <th>Model</th>
+              <th>Hardware Type</th>
+              <th>Branch Name</th>
+              <th>Problem</th>
+              <th>Status</th>
+              <th>Created AT</th>
+              <th>Returned AT</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filtered.map((t) => (
+              <tr
+                key={t._id}
+                onClick={() => setSelectedTicket(t)}
+                style={{ cursor: "pointer" }}
+              >
+                <td>{t.serialNumber}</td>
+                <td>{t.tagNumber}</td>
+                <td>{t.pcModel}</td>
+
+                {/* FIXED HARDWARE */}
+                <td>{getHardware(t)}</td>
+
+                <td>{t.branch}</td>
+                <td>{t.problem}</td>
+
+                <td>
+                  <span style={{
+                    ...styles.status,
                     background:
                       t.status === "Closed"
-                        ? "green"
+                        ? "#10b981"
                         : t.status === "Active"
-                        ? "blue"
-                        : "orange"
-                  }}
-                >
-                  {t.status}
-                </span>
-              </td>
+                        ? "#3b82f6"
+                        : "#f59e0b"
+                  }}>
+                    {t.status}
+                  </span>
+                </td>
 
-              <td>
-                {t.createdAt
-                  ? new Date(t.createdAt).toLocaleDateString()
-                  : "-"}
-              </td>
+                <td>
+                  {t.createdAt
+                    ? new Date(t.createdAt).toLocaleDateString()
+                    : "-"}
+                </td>
 
-              <td>
-                {t.returnedAt
-                  ? new Date(t.returnedAt).toLocaleDateString()
-                  : "-"}
-              </td>
+                <td>
+                  {t.returnedAt
+                    ? new Date(t.returnedAt).toLocaleDateString()
+                    : "-"}
+                </td>
 
-              {/* ================= ACTIONS ================= */}
-              <td style={{ display: "flex", gap: "8px" }}>
-                <button onClick={() => updateStatus(t._id, "Active")}>
-                  Active
-                </button>
+                {/* ACTIONS */}
+                <td>
+                  <div style={styles.actions}>
+                    <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, "Active"); }} style={styles.activeBtn}>
+                      Active
+                    </button>
 
-                <button onClick={() => updateStatus(t._id, "Closed")}>
-                  Close
-                </button>
+                    <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, "Closed"); }} style={styles.closeBtn}>
+                      Close
+                    </button>
 
-                <button
-                  onClick={() => navigate(`/edit-ticket/${t._id}`)}
-                  style={{ background: "purple", color: "white" }}
-                >
-                  Edit
-                </button>
+                    <button onClick={(e) => { e.stopPropagation(); navigate(`/edit-ticket/${t._id}`); }} style={styles.editBtn}>
+                      Edit
+                    </button>
 
-                {/* PRINT */}
-                <button
-                  onClick={() => printTicket(t)}
-                  disabled={t.status !== "Closed"}
-                  style={{
-                    background: t.status === "Closed" ? "#000" : "#999",
-                    color: "white",
-                    cursor:
-                      t.status === "Closed"
-                        ? "pointer"
-                        : "not-allowed"
-                  }}
-                >
-                  🖨️ Print
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); printTicket(t); }}
+                      disabled={t.status !== "Closed"}
+                      style={styles.printBtn}
+                    >
+                      🖨️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* MODAL */}
+      {selectedTicket && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedTicket(null)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+
+            <h2 style={{ color: "#95298e" }}>Ticket Details</h2>
+
+            <p><b>S/N:</b> {selectedTicket.serialNumber}</p>
+            <p><b>Tag NO:</b> {selectedTicket.tagNumber}</p>
+            <p><b>Model:</b> {selectedTicket.pcModel}</p>
+            <p><b>Hardware Type:</b> {getHardware(selectedTicket)}</p>
+            <p><b>Branch Name:</b> {selectedTicket.branch}</p>
+            <p><b>Problem:</b> {selectedTicket.problem}</p>
+            <p><b>Status:</b> {selectedTicket.status}</p>
+
+            <button onClick={() => setSelectedTicket(null)} style={styles.closeModalBtn}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default TicketTable;
 
-  // =========================
-  // SEARCH FILTER
-  // =========================
-  const filtered = tickets.filter((t) =>
-    t.serialNumber?.toLowerCase().includes(search.toLowerCase()) ||
-    t.tagNumber?.toLowerCase().includes(search.toLowerCase()) ||
-    t.branch?.toLowerCase().includes(search.toLowerCase()) ||
-    t.problem?.toLowerCase().includes(search.toLowerCase()) ||
-    t.pcModel?.toLowerCase().includes(search.toLowerCase())
-  );
+/* ================= STYLES (UNCHANGED) ================= */
+const styles = {
+  page: { padding: "20px", background: "#f4f4f7", minHeight: "100vh" },
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>All Tickets</h2>
+  header: { display: "flex", justifyContent: "space-between", marginBottom: "15px" },
 
-      <input
-        placeholder="Search tickets..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          padding: "8px",
-          width: "300px",
-          marginBottom: "15px"
-        }}
-      />
+  search: { padding: "8px", width: "200px", borderRadius: "6px" },
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ background: "#f3f3f3" }}>
-            <th>Serial</th>
-            <th>Tag</th>
-            <th>PC Model</th>
-            <th>Branch</th>
-            <th>Problem</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Returned</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+  exportBtn: {
+    background: "#95298e",
+    color: "white",
+    border: "none",
+    padding: "8px 10px",
+    borderRadius: "6px"
+  },
 
-        <tbody>
-          {filtered.map((t) => (
-            <tr key={t._id} style={{ borderBottom: "1px solid #ddd" }}>
-              <td>{t.serialNumber}</td>
-              <td>{t.tagNumber}</td>
-              <td>{t.pcModel || "-"}</td>
-              <td>{t.branch}</td>
-              <td>{t.problem}</td>
+  card: { background: "white", padding: "15px", borderRadius: "10px" },
 
-              <td>
-                <span
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "5px",
-                    color: "white",
-                    background:
-                      t.status === "Closed"
-                        ? "green"
-                        : t.status === "Active"
-                        ? "blue"
-                        : "orange"
-                  }}
-                >
-                  {t.status}
-                </span>
-              </td>
+  table: { width: "100%", borderCollapse: "collapse" },
 
-              <td>
-                {t.createdAt
-                  ? new Date(t.createdAt).toLocaleDateString()
-                  : "-"}
-              </td>
+  status: {
+    padding: "4px 8px",
+    borderRadius: "20px",
+    color: "white"
+  },
 
-              <td>
-                {t.returnedAt
-                  ? new Date(t.returnedAt).toLocaleDateString()
-                  : "-"}
-              </td>
+  actions: { display: "flex", gap: "5px" },
 
-              {/* ================= ACTIONS ================= */}
-              <td style={{ display: "flex", gap: "8px" }}>
-                <button onClick={() => updateStatus(t._id, "Active")}>
-                  Active
-                </button>
+  activeBtn: { background: "#3b82f6", color: "white", border: "none", padding: "5px" },
+  closeBtn: { background: "#10b981", color: "white", border: "none", padding: "5px" },
+  editBtn: { background: "#95298e", color: "white", border: "none", padding: "5px" },
+  printBtn: { background: "#000", color: "white", border: "none", padding: "5px" },
 
-                <button onClick={() => updateStatus(t._id, "Closed")}>
-                  Close
-                </button>
+  modalOverlay: {
+    position: "fixed",
+    top: 0, left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  },
 
-                <button
-                  onClick={() => navigate(`/edit-ticket/${t._id}`)}
-                  style={{ background: "purple", color: "white" }}
-                >
-                  Edit
-                </button>
+  modal: {
+    background: "white",
+    padding: "20px",
+    borderRadius: "10px",
+    width: "400px"
+  },
 
-                {/* PRINT */}
-                <button
-                  onClick={() => printTicket(t)}
-                  disabled={t.status !== "Closed"}
-                  style={{
-                    background: t.status === "Closed" ? "#000" : "#999",
-                    color: "white",
-                    cursor:
-                      t.status === "Closed"
-                        ? "pointer"
-                        : "not-allowed"
-                  }}
-                >
-                  🖨️ Print
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  closeModalBtn: {
+    marginTop: "10px",
+    width: "100%",
+    background: "#95298e",
+    color: "white",
+    border: "none",
+    padding: "8px"
+  }
 };
-
-export default TicketTable;
