@@ -2,9 +2,7 @@ import mongoose from "mongoose";
 
 const ticketSchema = new mongoose.Schema(
   {
-    // =========================
-    // DEVICE INFO
-    // =========================
+    
     serialNumber: {
       type: String,
       required: true
@@ -26,18 +24,14 @@ const ticketSchema = new mongoose.Schema(
     phone: String,
     broughtBy: String,
 
-    // =========================
-    // STATUS SYSTEM
-    // =========================
+   
     status: {
       type: String,
       enum: ["Pending", "Active", "Closed"],
       default: "Pending"
     },
 
-    // =========================
-    // PRIORITY SYSTEM (SLA)
-    // =========================
+    
     priority: {
       type: String,
       enum: ["Low", "Medium", "High", "Critical"],
@@ -49,9 +43,6 @@ const ticketSchema = new mongoose.Schema(
       default: 3
     },
 
-    // =========================
-    // RETURN SYSTEM
-    // =========================
     returnedBy: {
       type: String,
       default: ""
@@ -67,9 +58,7 @@ const ticketSchema = new mongoose.Schema(
       default: null
     },
 
-    // =========================
-    // MAINTENANCE SYSTEM
-    // =========================
+  
     maintenanceDone: {
       type: Boolean,
       default: false
@@ -95,8 +84,7 @@ const ticketSchema = new mongoose.Schema(
 }
   },
 
-  // auto adds:
-  // createdAt + updatedAt
+
   { timestamps: true }
 );
 
